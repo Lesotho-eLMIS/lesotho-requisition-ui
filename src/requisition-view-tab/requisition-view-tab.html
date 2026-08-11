@@ -32,7 +32,7 @@
 				<th class="col-{{column.name}}" ng-repeat="column in vm.columns | orderBy : 'displayOrder'"
 					ng-class="{'col-sticky': !column.$canChangeOrder}" openlmis-popover="{{vm.getDescriptionForColumn(column)}}"
 					popover-trigger-area="element">{{column.label}}</th>
-				<th class="col-sticky sticky-right" ng-if="vm.showDeleteColumn()"></th>
+				<th class="col-sticky sticky-right" ng-if="vm.showDeleteColumn()">{{'requisitionViewTab.action' | message}}</th>
 			</tr>
 		</thead>
 		<tbody ng-repeat="(category, lineItems) in vm.items | groupBy:'$program.orderableCategoryDisplayName'" tbody-title="{{category}}">
@@ -50,7 +50,7 @@
 					<button class="hide-line-item"
 						ng-click="vm.deleteLineItem(lineItem)"
 						ng-if="lineItem.$deletable">
-						<i class="fa fa-remove"></i>
+						{{'requisitionViewTab.remove' | message}}
 					</button>
 				</td>
 			</tr>
