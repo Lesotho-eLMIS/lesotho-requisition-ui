@@ -1235,7 +1235,13 @@ describe('Requisition', function() {
 
             expect(function() {
                 requisition.deleteLineItem(requisition.requisitionLineItems[0]);
-            }).toThrow('Can not delete full supply line items');
+            }).toThrow('Can not delete full supply line items from regular requisition');
+        });
+
+        it('should remove full supply line item from emergency requisition', function() {
+            var requisition = new this.RequisitionDataBuilder().buildEmergency();
+            requisition.deleteLineItem(requisition.requisitionLineItems[0]);
+            expect(requisition.requisitionLineItems.length).toBe(1);
         });
 
         it('should remove valid line item', function() {
