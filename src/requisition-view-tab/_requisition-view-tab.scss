@@ -32,6 +32,5 @@
 
     .hide-line-item {
         @extend button.danger;
-        @include icon-only("remove");
     }
 }

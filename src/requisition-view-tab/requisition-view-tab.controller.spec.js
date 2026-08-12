@@ -932,6 +932,16 @@ describe('ViewTabController', function() {
             expect(this.vm.showDeleteColumn()).toBe(true);
         });
 
+        it('should return true for emergency requisition on full supply tab', function() {
+            this.fullSupply = true;
+            this.canSubmit = true;
+            this.requisition.emergency = true;
+
+            this.initController();
+
+            expect(this.vm.showDeleteColumn()).toBe(true);
+        });
+
     });
 
     describe('skippedFullSupplyProductCountMessage', function() {

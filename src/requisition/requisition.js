@@ -616,7 +616,7 @@
          * Removes the given line item from the requisition.
          * If requisition status does not allow for removing line items an exception will be thrown.
          * If line item is not part of the requisition an exception will be thrown.
-         * If line item is full supply an exception will be thrown.
+         * If line item is full supply and requisition is not emergency an exception will be thrown.
          *
          * @param   {LineItem}  lineItem    the line item to be deleted
          */

@@ -13,6 +13,8 @@
     "requisitionViewTab.all": "All",
     "requisitionViewTab.page": "This Page",
     "requisitionViewTab.none": "None",
+    "requisitionViewTab.action": "Action",
+    "requisitionViewTab.remove": "Remove",
     "requisitionViewTab.skip": "Skip",
     "requisitionViewTab.totalLossesAndAdjustment.disabled": "Total losses and adjustments modal is disabled for stock based requisitions.",
 

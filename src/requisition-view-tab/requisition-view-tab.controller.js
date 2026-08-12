@@ -254,13 +254,14 @@
          * @name showDeleteColumn
          *
          * @description
-         * Checks whether the delete column should be displayed. The column is visible only if any
-         * of the line items is deletable.
+         * Checks whether the delete column should be displayed. The column is visible on the non
+         * full supply tab, or on the full supply tab for emergency requisitions, when the user can
+         * edit and any of the line items is deletable.
          *
          * @return {Boolean} true if the delete column should be displayed, false otherwise
          */
         function showDeleteColumn() {
-            return !fullSupply &&
+            return (!fullSupply || vm.requisition.emergency) &&
                 vm.userCanEdit &&
                 hasDeletableLineItems();
         }
