@@ -5,12 +5,12 @@
  * This program is free software: you can redistribute it and/or modify it under the terms
  * of the GNU Affero General Public License as published by the Free Software Foundation, either
  * version 3 of the License, or (at your option) any later version.
- *  
+ *  
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
  * See the GNU Affero General Public License for more details. You should have received a copy of
  * the GNU Affero General Public License along with this program. If not, see
- * http://www.gnu.org/licenses.  For additional information contact info@OpenLMIS.org. 
+ * http://www.gnu.org/licenses.  For additional information contact info@OpenLMIS.org. 
  */
 
 
@@ -34,10 +34,10 @@
                         'orderCreateService', 'notificationService', 'alertService', 'loadingModalService', 'confirmService', 'healthFacilities',
                          'hospitalFacilities', 'districtFacilities'];
 
-    function controller(stateTrackerService, requisition, user, facility, program, $state, processingPeriod, 
+    function controller(stateTrackerService, requisition, user, facility, program, $state, processingPeriod,
                     orderCreateService, notificationService, alertService, loadingModalService, confirmService, healthFacilities,
                     hospitalFacilities, districtFacilities) {
-            
+
         var vm = this;
 
         vm.$onInit = onInit;
@@ -56,16 +56,16 @@
         vm.displaySyncButton = undefined;
         vm.requisitionType = undefined;
         vm.supplyingFacilities = undefined;
-        vm.submitRedistribution = submitRedistribution; 
+        vm.submitRedistribution = submitRedistribution;
         vm.createProcessAndSendOrder = createProcessAndSendOrder;
         vm.redistributeRequisition = redistributeRequisition;
         vm.submitOrders = submitOrders;
         vm.filteredProducts = filteredProducts;
         vm.filterFacilities = filterFacilities;
         vm.calculatePacksToShip = calculatePacksToShip;
-        
+
         function onInit() {
-        
+
            vm.facility = facility;
            vm.hospitals = hospitalFacilities;
            vm.healthCenters = healthFacilities;
@@ -90,9 +90,9 @@
         //Merging Facility Arrays
         function getSupplyingFacilities(...arrays) {
             return arrays.reduce((acc, array) => acc.concat(array), []);
-        }   
-        
-        
+        }
+
+
         //Select facilities in the same district as requesting facility as well as all DHMT facilities
        function filterFacilities() {
 
@@ -103,11 +103,11 @@
 
 
             if (vm.facility.type.code === 'dist_store') {
-                return supplierFacilities.filter(item => 
+                return supplierFacilities.filter(item =>
                     item.type.code === 'dist_store' || item.geographicZone?.parent?.id === zoneId
                 );
             }
-            return supplierFacilities.filter(item => 
+            return supplierFacilities.filter(item =>
                 (item.type.code === 'dist_store' && item.geographicZone?.id === zoneId) ||
                     (item.geographicZone?.parent?.id === zoneId)
             );
@@ -122,8 +122,8 @@
             });
             return totalApprovedQty;
         }
-        
-        //Compute the total quantity to issue for the requisition       
+
+        //Compute the total quantity to issue for the requisition
         vm.getQuantityToIssue = function(){
             let quantityToIssue = 0;
             vm.requisitionLineItems.forEach((item) => {
@@ -134,7 +134,7 @@
 
         //Assembles orders for each requisition line item and passes them on for processing.
         function submitRedistribution() {
-            
+
             // validate that approved quantity and quantity to issue match
             if (vm.totalApprovedQty !== vm.getQuantityToIssue()) {
                 failWithMessage('requisitionRedistribution.fail')();
@@ -145,12 +145,13 @@
                     .confirm('requisitionRedistribution.submit.confirm')
                     .then(function () {
                         let orderLineItems = [];
-                        //build an order object for each requisition line item 
+                        //build an order object for each requisition line item
                         vm.requisitionLineItems.forEach(lineItem => {
                             const order = {
                                 emergency: true,
                                 createdBy: { id: user.id },
                                 program: { id: program.id },
+                                processingPeriod: { id: processingPeriod.id },
                                 requestingFacility: { id: facility.id },
                                 receivingFacility: { id: facility.id },
                                 supplyingFacility: { id: lineItem.supplyingFacility.id },
@@ -165,7 +166,7 @@
             }
         }
 
-       
+
         function submitOrders(requisitionItems, orderItems) {
             let orderLineItems = orderItems;
             while (orderLineItems.length > 0) {
@@ -176,7 +177,7 @@
 
                 //Update the original array of orders to exclude the filterd orders having the same supplying facility ID
                 orderLineItems = orderLineItems.filter(item => !ordersArray.includes(item));
-                
+
                 //if the array of orders is not empty, pass to createProcessAndSendOrder function for futher processing
                 if (ordersArray.length > 0) {
                     let ordersForProcessing = ordersArray;
@@ -194,16 +195,19 @@
                     return orderCreateService.get(createdOrder.id);
                 })
                 .then((fetchedOrder) => {
+                    fetchedOrder.processingPeriod = processingPeriod;
+                    fetchedOrder.emergency = true;
+
                     requestedItems.forEach((lineItem) => {
                         let packs = calculatePacksToShip(lineItem);
-                       
-                        fetchedOrder.orderLineItems.push({                                    
+
+                        fetchedOrder.orderLineItems.push({
                             orderable: lineItem.orderable,
                             orderedQuantity: packs, //lineItem.packsToShip,
                             soh: 45
                         });
-                    }); 
-                                  
+                    });
+
                     return orderCreateService.send(fetchedOrder);
                 })
                 .then(() => {
@@ -230,20 +234,20 @@
         /*Updates the status of the requisition to show that for all requisition line items,
           orders have been created and sent for supply */
         function redistributeRequisition() {
-          
+
             vm.requisition = angular.copy(vm.redistributedRequisition);
                 vm.requisition .extraData = { isRedistributed: true };
                      return vm.requisition .$save()
                         .then(() => vm.requisition .$approve()
                             .then(() => stateTrackerService.goToPreviousState('openlmis.requisitions.approvalList')));
-        } 
-        
+        }
+
         //filters all line items with the same product as that of the given index
-        function filteredProducts (index){            
+        function filteredProducts (index){
             let selectedProduct = vm.requisitionLineItems[index];
             return vm.requisitionLineItems.filter(lineItem => lineItem.orderable.productCode === selectedProduct.orderable.productCode);
         }
-        
+
         //Computes the total quantity to be issued for a single product that may be supplied by different facilities.
         vm.totalQuantityToIssue = function(index){
             let total = 0;
@@ -253,10 +257,10 @@
             }
             return total;
         };
-       
-        /*Controls the visibility of the button that adds another row so that a 
+
+        /*Controls the visibility of the button that adds another row so that a
           single product may be supplied by different facilities.*/
-       vm.showAddButton = function(index) {  
+       vm.showAddButton = function(index) {
             let item = vm.requisitionLineItems[index];
             let selectedProducts = filteredProducts(index);
             let quantityToIssue = vm.totalQuantityToIssue(index);
@@ -269,10 +273,10 @@
             else if (quantityToIssue < approvedQuantity){
                 selectedProducts.forEach((product) => {
                     product.addRowButton = true;
-                });      
+                });
             }
         };
-    
+
         //Adds a row to the table
         vm.addRow = function(index, item) {
             // Create a new item object with default values
@@ -283,7 +287,7 @@
             newLineItem.remarks = item.remarks;
             newLineItem.addRowButton = true;
             newLineItem.removeRowButton = true;
-        
+
             // Insert the new item into the array at the specified index
             vm.requisitionLineItems.splice(index + 1, 0, newLineItem);
         };
@@ -291,9 +295,9 @@
         //Removes a line item from Redistribution table
         vm.removeLineItem = function (index) {
             vm.requisitionLineItems.splice(index, 1);
-            vm.showAddButton(index);            
+            vm.showAddButton(index);
         }
-       
+
         //Provides a fail message when quantity to issue for all line items fails validation
         function failWithMessage(message) {
             return function() {
